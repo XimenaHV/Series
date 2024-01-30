@@ -1,0 +1,99 @@
+---
+title: "Trabajo 1"
+author: "XHV"
+format: 
+  html:
+    toc: true
+    embed-resources: true
+---
+
+## pkgs
+
+```{r}
+#| message: false
+library(tidyverse)
+library(fpp3)
+library(plotly)
+library(patchwork)
+library(tidyquant)
+```
+
+## 
+
+```{r}
+aus_accommodation
+```
+
+```{r}
+
+
+
+delete_cols <- c("CPI", "State")
+
+tasmania <- aus_accommodation |>
+  filter(State == "Tasmania") |>
+  # select(-CPI, -State)
+  # select(-c(CPI,State))
+  # select(Date:Occupancy)  Con estas solo seleccionarias las que 
+  # select(Date, State, Takings, Ocuupancy)     quieras
+  select(-delete_cols) |>
+  mutate(   # mutate para agregar o modificar columnas
+    `Año bisiesto opción` = 1
+  ) |>
+  
+  janitor::clean_names()  # clean_names todo en minusculas sin caracteres especiales
+
+tasmania
+
+tasmania |>
+  glimpse()
+names(tasmania)
+#CTRL/CMD + SHIFT + M
+```
+
+```{r}
+tasmania |>
+  autoplot(takings, color = "slateblue1", size = 2)
+```
+
+```{r}
+tasmania |>
+  autoplot(log(takings), color = "slateblue1", size = 2)
+```
+
+```{r}
+tasmania |>
+  gg_season(log(takings))
+
+tasmania |>
+  gg_subseries(log(takings))
+```
+En subseries la linea azul es el promedio a lo largo del tiempo
+
+```{r}
+tasmania |>
+  gg_tsdisplay(log(takings), plot_type = "auto")
+```
+
+```{r}
+stocks <- c("TSLA","GOOGL","MSFT","AAPL","CEMEXCPO.MX")
+
+stocks_data <- tq_get(
+  x = stocks,
+  get = "stock.prices",
+  from = "2014-01-01",
+  to = today()-1
+)
+
+stocks_data
+stocks_data |>
+  distinct(symbol)
+
+stocks_data <- stocks_data |>
+  as_tsibble(index = date, key = symbol)
+
+stocks_data
+```
+
+
+
