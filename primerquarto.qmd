@@ -1,0 +1,86 @@
+---
+title: "Mi primer documento de Quarto"
+author: "Ximena"
+format: 
+  html:
+    embed-resources: true
+    theme: 
+      light: minty
+      dark: darkly
+toc: true
+df-print: paged
+---
+
+
+YAML
+
+## pkgs
+
+"CTRL + ALT + I" para agregar nuevos `chunks` código.
+
+Esto es texto.
+
+- `CTRL/CMD + SHIFT + ENTER` corre todo un chunk completo
+
+```{r}
+library(tidyverse)
+library(fpp3)
+library(plotly)
+```
+## Acciones
+
+LAs `tsibbles` son data frames (`tibbles` para series de tiempo). Tienen 2 argumentos caracteristicos para series de tiempo:
+
+- **index**: una columna que contiene a la variable temporal. En este caso es la columna `Date`.
+- **key**: no es obligatorio cuando solo tiene una serie de tiempo. Si la tabla contiene más d euna serie de tiempo (en filas), si es obligatorio definir el `key`.
+
+
+```{r}
+gafa_stock
+
+gafa_stock |> #pipe
+  distinct(Symbol)
+```
+
+El atajo del teclado para escribir `|>`es `CTRL/CMD + SHIFT + M`.
+
+```{r}
+gafa_stock |>
+  # pasar las columnas a filas
+  pivot_longer(cols = -c(Symbol, Date), names_to = "tipo", values_to = "valor") |>
+  # convertir a tibble
+  as_tibble() |>
+  # agrupar por acción y tipo de var.
+  group_by(Symbol, tipo) |>
+  # sacar la media por grupos
+  summarise(media = mean(valor)) |>
+  # pasar los tipos a columnas
+  pivot_wider(names_from = Symbol, values_from = media)
+```
+
+```{r}
+g1 <- gafa_stock |>
+  autoplot(Close) + 
+  facet_wrap(~ Symbol, scales = "free_y") + 
+  theme(legend.position = "none")
+g1
+
+ggplotly(g1)
+```
+
+```{r}
+gafa_stock |>
+  select(-Volume) |>
+  pivot_longer(cols = -c(Symbol, Date), names_to = "tipo", values_to = "valor") |>
+  autoplot(valor) +
+  facet_grid(Symbol ~ tipo, scales = "free_y") + 
+  theme(legend.position = "none")
+```
+
+Heterocedasticidad
+Homocedasticidad
+
+
+
+
+
