@@ -1,0 +1,182 @@
+---
+title: "Tarea descomposición"
+author: "Raúl, Ximena, Jhonatan"
+format: 
+  html:
+    embed-resources: true
+toc: true
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+library(fpp3)
+library("easypackages")
+packages("tidyverse", "tidyquant", "lubridate", "patchwork", "fpp2","fpp3","scales", "timetk")
+```
+
+# Ejercicio 1: Graficar el PIB de cada pais
+
+```{r}
+#| warning: false
+
+# autoplot() version
+global_economy |> 
+  autoplot(GDP/Population) +
+  theme(legend.position = "none")
+
+# ggplot() version
+global_economy |> 
+  ggplot(aes(x = Year, y = GDP/Population, color = Country)) +
+  geom_line() +
+  theme(legend.position = "none")
+
+```
+
+# Ejercicio 2 
+## i PIB USA
+
+```{r}
+usa_economy <- global_economy |>
+  filter(Code == "USA")
+
+# Creamos el gráfico
+usa_economy |> 
+  ggplot(aes(x = Year, y = GDP/Population, color = Country)) +
+  geom_line() +
+  theme(legend.position = "none")
+
+#Transformaciones Box-Cox
+(lambda <- usa_economy %>%
+  features(GDP/Population, features = guerrero) %>%
+  pull(lambda_guerrero))
+usa_economy %>% autoplot(box_cox(GDP/Population, lambda))
+```
+
+## ii PIB MX
+
+```{r}
+MX_economy <- global_economy |>
+  filter(Country == "Mexico")
+
+# Creamos el gráfico
+MX_economy |> 
+  ggplot(aes(x = Year, y = GDP/Population, color = Country)) +
+  geom_line() +
+  theme(legend.position = "none")
+
+#Transformaciones Box-Cox
+(lambda <- MX_economy %>%
+  features(GDP/Population, features = guerrero) %>%
+  pull(lambda_guerrero))
+MX_economy %>% autoplot(box_cox(GDP/Population, lambda))
+```
+
+## iii Demanda de electricidad en el estado de Victoria (Australia), de vic_elec.
+
+```{r}
+# Creamos el gráfico
+vic_elec |> 
+  ggplot(aes(x = Time, y = Demand, color='blue')) +
+  geom_line() +
+  theme(legend.position = "none")
+
+
+
+
+```
+
+# Ejercicio 3
+
+```{r}
+canadian_gas |> 
+  ggplot(aes(x = Month, y = Volume, color='blue')) +
+  geom_line() +
+  theme(legend.position = "none")
+
+#Transformaciones Box-Cox
+(lambda <- canadian_gas %>%
+  features(Volume, features = guerrero) %>%
+  pull(lambda_guerrero))
+canadian_gas %>% autoplot(box_cox(Volume, lambda))
+```
+
+No es util realizar la transformación de Box-Cox en los datos de canadian_gas porque no hay gran diferencia en las transformaciones #Ejercicio 4
+
+
+# Ejercicio 4
+
+# i
+
+```{r}
+# Crea un dataframe con los datos de ventas del producto A
+datos <- data.frame(Mes = 1:length(plastics), Ventas = plastics)
+
+# Crea el gráfico de la serie de tiempo para el producto A
+ggplot(datos, aes(x = Mes, y = Ventas)) +
+  geom_line() +
+  labs(x = "Mes", y = "Ventas (en miles)", title = "Serie de tiempo del Producto A")
+```
+
+# ii
+
+```{r}
+# Convierte los datos a un objeto tsibble
+datos_tsibble <- as_tsibble(plastics)
+
+# Realiza la descomposición multiplicativa y grafica los componentes
+plasticos_decomp <- datos_tsibble %>%
+    model(classical_decomposition(plastics, type = "multiplicative")) %>%
+    components() %>%
+    autoplot() + xlab("Year") +
+  ggtitle("descomposicion multiplicativa clasica")
+
+plasticos_decomp
+```
+
+# iii
+# ¿Los resultados coinciden con su respuesta al inciso i)?
+Si coinciden los datos con el inciso i)
+
+# iv. Calcule y grafique los datos desestacionalizados
+
+```{r}
+plasticos_decomp1 <- as_tsibble(fma::plastics) |> 
+  model(
+    clasica= classical_decomposition(type = "multiplicative")
+  )
+
+plasti_components <- plasticos_decomp1 |> 
+  components() 
+
+plasti_components |> 
+  autoplot(season_adjust) # Datos desestacionalizados
+```
+
+# v. Cambie, manualmente, una observación para que sea un outlier (p. ej., sume 500 a una observación). Vuelva a estimar los datos desestacionalizados. ¿Cuál fue el efecto de ese outlier?
+
+```{r}
+plasti_outlier <- datos_tsibble 
+
+plasti_outlier[50,'value'] <- plasti_outlier[50,'value'] + 500
+
+
+plasticos_decomp2 <- plasti_outlier |> 
+  model(
+    clasica= classical_decomposition(type = "multiplicative")
+  )
+
+plasti_components <- plasticos_decomp2 |> 
+  components() 
+
+plasti_components |> 
+  autoplot(season_adjust) # Datos desestacionalizados
+```
+
+# vi. ¿Hace alguna diferencia que el outlier se encuentre cerca del final de la serie o más alrededor del centro?
+
+Al momento de graficar los datos desestacionalizados se puede observar el pico que se forma por este outlier, este no afecta al resto de los datos, por lo que si se encuentra por el centro o al final de la serie no afecta, ya que el pico se forma pero sin considerar en que observación sería.
+
+
+
+

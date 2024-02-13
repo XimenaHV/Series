@@ -1,0 +1,76 @@
+---
+title: "Descomposicion"
+author: "XHV"
+format: html
+---
+
+## pkgs
+
+```{r}
+#| message: false
+library(tidyverse)
+library(fpp3)
+```
+
+## data
+
+```{r}
+empleo_tsbl <- us_employment |> 
+  filter(year(Month) >= 1990, Title == "Retail Trade") |> 
+  select(-Series_ID)
+```
+
+
+## download to csv
+
+```{r}
+# dir.create("parcial_1/datos") # Para crear una carpeta
+# empleo_tsbl |> 
+  # write.csv("parcial_1/datos/empleo_eeuu.csv")
+```
+
+```{r}
+empleo_tsbl |> 
+  autoplot(Employed)
+```
+
+## Descomposicion clasica
+
+### `mable` (model table)
+
+```{r}
+empleo_decomp <- empleo_tsbl |> 
+  model(
+    clasica= classical_decomposition(Employed,
+                                     type = "additive")
+  )
+
+empleo_decomp
+```
+
+### Components
+
+```{r}
+empleo_components <- empleo_decomp |> 
+  components()
+
+empleo_components |> # mutate sirve para modificar, te crea la columna si no la tienes
+  mutate(desestacionalizados = Employed - seasonal) # Para saber como se hacen los datos desestacionalizados
+
+empleo_components |> 
+  autoplot()
+```
+
+### Descomposición STL
+### STL signifca "Seasonal and Trend decomposition using Loess" (Loess es un método de estimación de relaciones no lineales)
+
+```{r}
+empleo_tsbl |> 
+  model(
+    stl = STL(Employed ~ trend(window = 7) + season(window = "periodic"))
+  ) |> 
+  components() |>  # el tamaño de trend va suavizando linea
+  autoplot()
+```
+
+

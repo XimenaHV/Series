@@ -1,7 +1,7 @@
 ---
 title: "Trabajo 1"
 author: "XHV"
-format: 
+format:  
   html:
     toc: true
     embed-resources: true

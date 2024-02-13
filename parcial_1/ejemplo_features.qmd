@@ -1,0 +1,56 @@
+---
+title: "Untitled"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(fpp3)
+```
+
+
+```{r}
+aus_accommodation
+```
+
+Versión `group_by()` con `summarise()`:
+```{r}
+aus_accommodation |> 
+  as_tibble() |> 
+  group_by(State) |> 
+  summarise(
+    across(Takings:CPI, mean)
+  )
+```
+
+Features en automatico nos detecta grupos
+
+
+```{r}
+aus_accommodation |> 
+  features(Takings, list(media = mean, desv_std = sd, minimo = min, maximo = max))
+```
+
+
+```{r}
+aus_accommodation
+
+aus_accommodation_long <- aus_accommodation |> 
+  pivot_longer(cols = Takings:CPI, names_to = "variables",
+               values_to = "los_valores")
+
+aus_accommodation_long
+
+```
+
+```{r}
+aus_accommodation_long |> 
+  features(los_valores, feat_stl())
+```
+```{r}
+aus_accommodation |> 
+  
+```
+
+
+
