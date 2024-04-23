@@ -1,0 +1,88 @@
+---
+title: "Examen"
+author: "Ximena Herrera"
+format: 
+  html:
+    toc: true
+    embed-resources: true
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+library(fpp3)
+library(ggplot2)
+```
+
+## Ejercicio 1
+
+```{r}
+ventas <- as_tsibble(mutate(tidyquant::tq_get(x = "MEXSLRTTO01IXOBM", get = "economic.data", 
+    from = "1986-01-01", to = "2023-03-01"), date = yearmonth(date)), 
+    index = date, key = symbol)
+ventas
+```
+
+```{r}
+autoplot(ventas)
+```
+
+```{r}
+lambda <- ventas |>
+  features(price, features = guerrero) |>
+  pull(lambda_guerrero)
+
+lambda
+
+ventas |>
+  autoplot(box_cox(price, lambda))
+```
+
+## Ejercicio 2
+
+
+```{r}
+ventas_fit <- ventas |>
+  model(
+    snaive = SNAIVE(price, lambda)
+  )
+
+ventas_fit
+```
+
+## Diagnóstico de residuos
+
+```{r}
+ventas_fit |> 
+  select(snaive) |> # modelo de seasonal naive
+  gg_tsresiduals()
+```
+## Error
+
+```{r}
+accuracy(ventas_fit) |> 
+  arrange(MAPE)
+
+```
+
+
+
+
+## Pronóstico
+
+```{r}
+ventas_fc <- ventas_fit |>
+  forecast(h = "4 years")
+
+ventas_fc
+
+ventas_fc |>
+  autoplot(ventas) +
+  facet_wrap(~ .model) +
+  theme(legend.position = "none")
+```
+
+```{r}
+
+```
+
