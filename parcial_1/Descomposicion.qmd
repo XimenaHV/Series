@@ -1,7 +1,10 @@
 ---
 title: "Descomposicion"
 author: "XHV"
-format: html
+format: 
+  html:
+    toc: true
+    embed-resources: true
 ---
 
 ## pkgs
@@ -62,6 +65,39 @@ empleo_components |>
 ```
 
 ### Descomposición STL
+
+```{r}
+empleo_fit <- empleo_tsbl |> 
+  model(
+    stl = STL(Employed, robust = TRUE)
+  )
+
+empleo_components <- empleo_fit |> 
+  components()
+
+empleo_components |> 
+  autoplot()
+```
+
+```{r}
+empleo_tsbl |> 
+  autoplot(Employed, color = "gray", size = 1) +
+  theme_light() +
+  autolayer(empleo_components, season_adjust, color = "firebrick", size = 1) +
+  labs(title = "El empleo en el sector de Retail en EEUU",
+       subtitle = "Serie desestacionalizada")
+```
+
+```{r}
+empleo_tsbl |> 
+  model(
+    stl = STL(Employed ~ trend(window = 17) + season(window = 7))
+  ) |> 
+  components() |> 
+  autoplot()
+```
+
+
 ### STL signifca "Seasonal and Trend decomposition using Loess" (Loess es un método de estimación de relaciones no lineales)
 
 ```{r}
